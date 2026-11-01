@@ -197,7 +197,9 @@ The opening, then Play ([clip](docs/opening.webm)):
   step through) with **Copy** (the picture, to the clipboard), **Open**, **Show in folder** and
   **Delete** (to the trash, after a confirmation). From the command line:
   `horizon-launcher screenshots [list|delete] [--instance <name>]`.
-- **Java** (for the Minecraft: Java Edition instances to come): the runtime a version's JSON asks for
+- **Java** (for Minecraft: Java Edition instances): imported Prism Launcher, MultiMC and official
+  launcher installs retain their local client files and can start without a Microsoft account;
+  the game uses Minecraft's normal offline player identity. The runtime a version's JSON asks for
   (`javaVersion`: its major exactly, Java 8 before that field), found among Mojang's runtimes Horizon
   downloaded (`minecraft/runtime/` in its data folder, the one preparing uses) and the Java homes installed
   on this computer, read from their `release` files without starting them; when none has that major,
@@ -420,10 +422,12 @@ The window, the command line and the MCP server all call the same core, `src/bac
 
 ## Microsoft accounts
 
-The launcher starts the game only while a Microsoft account that owns Minecraft: Java Edition is
-signed in, as other launchers do: without one, Play (Home, instances, `horizon-launcher play`, the
-MCP's `play`) says "Sign in with a Microsoft account that owns Minecraft: Java Edition to play"
-and starts nothing. Settings → Accounts signs in: the launcher shows a code, you enter it at
+Horizon instances start only while a Microsoft account that owns Minecraft: Java Edition is signed
+in, as other launchers do. Java Edition instances imported from an existing local installation
+(including Prism Launcher) can start without an account and reuse that installation's client,
+libraries and assets; they play as Minecraft's normal offline identity. Without a local Java
+installation, the launcher still needs an owning account to download the game. Settings → Accounts
+signs in: the launcher shows a code, you enter it at
 microsoft.com/link, and the launcher checks that the account owns the game. It asks again at every
 Play, with the token renewal; with no network the last answer stands, and a "doesn't own" blocks
 at once. The account also plays online-mode servers under your own name and skin; offline names

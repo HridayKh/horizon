@@ -163,6 +163,9 @@ pub struct Meta {
 pub struct JavaGame {
     /// The Minecraft version, as Mojang names it (`1.21.4`).
     pub minecraft: String,
+    /// An existing launcher's shared Minecraft files, when this instance was imported from one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<PathBuf>,
     /// A Java home to run it on instead of the automatic pick.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub home: Option<PathBuf>,

@@ -1493,6 +1493,45 @@ pub fn java_game(
     let player = account::java_player()?;
     let minecraft = data_dir().join("minecraft");
     let id = mojang::relative(&game.minecraft)?;
+    let minecraft = if let Some(source) = game.source.as_deref().filter(|p| p.is_dir()) {
+        let listed = crate::minecraft_versions::load()?;
+        let version = listed.find(&game.minecraft)?;
+        let pins =
+            crate::sources::local_pins(source, &version.id, &version.sha1).ok_or_else(|| {
+                format!(
+                    "{} has no installed Minecraft {} client files",
+                    source.display(),
+                    version.id
+                )
+            })?;
+        let fetch = |url: &str| -> Result<Vec<u8>, String> {
+            let mut body = Vec::new();
+            get(url)?
+                .into_reader()
+                .read_to_end(&mut body)
+                .map_err(|e| e.to_string())?;
+            Ok(body)
+        };
+        match crate::sources::resolve(
+            source,
+            &pins,
+            &[],
+            &data_dir().join("minecraft"),
+            &fetch,
+            log,
+        )? {
+            crate::sources::Resolved::Folder(folder) => folder,
+            crate::sources::Resolved::NotFound(_) => {
+                return Err(format!(
+                    "{} has no installed Minecraft {} client files",
+                    source.display(),
+                    version.id
+                ))
+            }
+        }
+    } else {
+        minecraft
+    };
     let natives = minecraft.join("natives").join(&id);
     // Each version and loader profile is fetched once; it then starts offline too.
     let downloaded = |id: &str| -> Result<PathBuf, String> {

@@ -499,11 +499,23 @@ pub fn import(found: &Found, name: &str, minecraft: Option<&str>) -> Result<Inst
         let _ = instances::delete(&instance.id);
         return Err(format!("Could not copy {}: {e}", found.game.display()));
     }
-    match loader(found) {
-        Some(l) => instances::edit(&instance.id, |m| {
-            m.java.get_or_insert_with(Default::default).loader = Some(l)
+    let source = if matches!(found.launcher, "Prism Launcher" | "MultiMC") {
+        sources::instance_root(&found.game)
+    } else if found.shared {
+        Some(found.game.clone())
+    } else {
+        None
+    };
+    match (loader(found), source) {
+        (Some(loader), source) => instances::edit(&instance.id, |m| {
+            let java = m.java.get_or_insert_with(Default::default);
+            java.loader = Some(loader);
+            java.source = source;
         }),
-        None => Ok(instance),
+        (None, Some(source)) => instances::edit(&instance.id, |m| {
+            m.java.get_or_insert_with(Default::default).source = Some(source);
+        }),
+        (None, None) => Ok(instance),
     }
 }
 

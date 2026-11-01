@@ -239,11 +239,26 @@ pub(crate) fn sha1_file(path: &Path) -> Option<String> {
 /// `instances/<name>/` (Prism's game folder is `minecraft`, MultiMC's `.minecraft`) and the
 /// shared `libraries` and assets sit in the launcher root above `instances`, two or three
 /// folders above what players naturally pick.
-fn instance_root(dir: &Path) -> Option<PathBuf> {
+pub(crate) fn instance_root(dir: &Path) -> Option<PathBuf> {
     dir.ancestors()
         .find(|a| a.file_name() == Some(std::ffi::OsStr::new("instances")))
         .and_then(Path::parent)
         .map(Path::to_path_buf)
+}
+
+/// The client hash of a version already installed in another launcher's folder.
+pub(crate) fn local_pins(base: &Path, version: &str, manifest_sha1: &str) -> Option<Pins> {
+    client_jars(base, version)
+        .into_iter()
+        .map(|jar| base.join(jar))
+        .find(|jar| jar.is_file())
+        .and_then(|client| {
+            Some(Pins {
+                version: version.to_string(),
+                client_sha1: sha1_file(&client)?,
+                manifests: vec![manifest_sha1.to_string()],
+            })
+        })
 }
 
 /// The launcher whose tree `path` is inside, when its folder name is one Horizon knows, so the
