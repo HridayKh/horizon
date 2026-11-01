@@ -103,7 +103,9 @@ cargo run --release -p horizon-prepare -- sounds   # optional: sounds from your 
 cargo run --release -p horizon-client
 ```
 
-Prepared files land in the gitignored `.local/`: never commit or share them. Options, controls and architecture: [the native client guide](docs/native-client.md); all developer docs: [docs/README.md](docs/README.md).
+Prepared files land in the gitignored `.local/`: never commit or share them. Options, controls and architecture: [the native client guide](docs/native-client.md). For a Linux source build and
+offline player, see [Build from source on Linux](docs/build-from-source-linux.md); all developer docs:
+[docs/README.md](docs/README.md).
 
 ## Roadmap
 
