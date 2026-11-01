@@ -1649,8 +1649,8 @@ fn session_file(game_home: &Path, pass: Launch) -> (Option<PathBuf>, Option<Stri
 }
 
 /// Who plays the real Minecraft: Java Edition (a Java instance), past the owner gate itself
-/// ([`launch`]): the selected account when it owns the game, else one that does. With no answer
-/// from the services, an account that owned it plays with its last token. Mojang's game takes the
+/// ([`launch`]): the selected account when it owns the game, else one that does. If no account can
+/// pass the gate, Java instances use Minecraft's normal offline identity. Mojang's game takes the
 /// token on its command line, as Mojang's launcher gives it; that command is never logged.
 pub fn java_player() -> Result<crate::java_launch::Player, String> {
     let mut accounts = Accounts::load();
@@ -1661,7 +1661,13 @@ pub fn java_player() -> Result<crate::java_launch::Player, String> {
         &mut accounts,
     );
     let _ = accounts.save();
-    player
+    player.or_else(|_| {
+        let name = accounts
+            .name_arg()
+            .map(str::to_owned)
+            .unwrap_or_else(|| "Player".into());
+        Ok(crate::java_launch::Player::offline(&name))
+    })
 }
 
 fn java_player_with(

@@ -8,6 +8,7 @@
 //! one game folder. Nothing here reaches the network.
 
 use crate::mojang;
+use md5::{Digest, Md5};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
@@ -20,6 +21,39 @@ pub struct Player {
     pub uuid: String,
     pub token: String,
     pub xuid: String,
+}
+
+impl Player {
+    pub fn offline(name: &str) -> Self {
+        let mut hash = Md5::digest(format!("OfflinePlayer:{name}").as_bytes()).to_vec();
+        hash[6] = (hash[6] & 0x0f) | 0x30;
+        hash[8] = (hash[8] & 0x3f) | 0x80;
+        let uuid = format!(
+            "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+            hash[0],
+            hash[1],
+            hash[2],
+            hash[3],
+            hash[4],
+            hash[5],
+            hash[6],
+            hash[7],
+            hash[8],
+            hash[9],
+            hash[10],
+            hash[11],
+            hash[12],
+            hash[13],
+            hash[14],
+            hash[15],
+        );
+        Self {
+            name: name.to_string(),
+            uuid,
+            token: String::new(),
+            xuid: String::new(),
+        }
+    }
 }
 
 impl std::fmt::Debug for Player {
@@ -377,7 +411,10 @@ pub fn command(version: &Value, launch: &Launch) -> Result<Command, String> {
         ("auth_session", format!("token:{}:{}", p.token, p.uuid)),
         ("auth_xuid", p.xuid.clone()),
         ("clientid", String::new()),
-        ("user_type", "msa".into()),
+        (
+            "user_type",
+            if p.token.is_empty() { "legacy" } else { "msa" }.into(),
+        ),
         ("user_properties", "{}".into()),
         ("version_name", id.to_string()),
         (
